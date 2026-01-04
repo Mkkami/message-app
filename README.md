@@ -1,21 +1,53 @@
 # message-app
 
 ### Logowanie
-- użytkownik podaje username i password
-- system sprawdza poprawność danych
-- system wysyła OK z np. session_id
-- użytkownik wysyła session_id z kodem 2FA
-- system sprawdza kod dla danego użytkownika
-- poprawny -> wysyła cookie
+1. Dane wejściowe
+  - użytkownik podaje username i password
+  - serwer odbiera dane
+  - sprawdza ich poprawność
+2. 2FA
+  - serwer wysyła kod TOTP
+  - użytkownik go skanuje
+  - serwer pobiera enc_2fa_key
+  - odszyfrowuje go Master keyem serwera (.env)
+  - `pyotp` do sprawdzenia kodu (uwzględniając okno czasowe T-1, T, T+1)
+  - serwer daje session_id
+3. Klucze
+  - serwer przesyła klucze z UserKeys
+  - PBKDF2(hasło + salt) -> Master Key
+  - przeglądarka odszyfrowuje klucze prywatne
+  - klucze są przechowywane w `Context API` Reacta
 
 ### Rejestracja
-- użytkownik podaje username i password
- - system sprawdza czy password jest odpowiednio silny
- - system sprawdza czy nie ma już takiego użytkownika
- - (jakieś biblioteki do sprawdzania hasła)
-- system zapisuje użytkownika
-- [2FA](#2fa-totp)
-- (może podać jakiś jednorazowy kod jakby zgubił 2fa??)
+1. Dane wejściowe
+  - użytkownik podaje username i password
+  - w przeglądarce jest sprawdzana siła hasła
+  - na serwerze jest sprawdzane, czy nazwa użytkownika jest wolna `GET /check-username?name=uname`
+2. Klucze
+  - W przeglądarce generowane są pary kluczy: Ed25519 i X25519
+3. Zabezpieczenie kluczy
+  - generuje losowy salt
+  - PBKDF2(password + salt) -> master key
+  - klucze prywatne są szyfrowane master key'em
+4. Użytkownik wysyła na serwer:
+```json
+{
+  "username": "string",
+  "password": "string",
+  "public_keys": {
+    "signing": "base64",
+    "encryption": "base64"
+  },
+  "private_keys": {
+    "signing_enc": "base64_blob",
+    "encryption_enc": "base64_blob",
+    "salt": "base64",
+    "iv": "base64"
+  }
+}
+
+
+```
 ### 2FA (TOTP)
 - serwer generuje unikalny klucz do 2FA
 - użytkownik skanuje (podaje) ten klucz do aplikacji
@@ -76,7 +108,6 @@ E, IV_msg, Tag_msg, ciphertext, enc_K_msg, enc_file
     "text": "string",
     "att_key": "string",
     "att_iv": "string",
-    "att_tag": "string",
     "filename": "string",
     "signature": "Ed_string"
 }
@@ -91,8 +122,8 @@ E, IV_msg, Tag_msg, ciphertext, enc_K_msg, enc_file
   - noble-curves: ed25519, x25519
   - Web Crypto API (przeglądarka): AES-GCM, HKDF (SHA-256)
   - qrcode.react: do kodu QR podczas konfiguracji 2FA
-  
-  - argon2-browser: argon2id (lub PBKDF2, wtedy nie trzeba .wasm)
+  - PBKDF2: tworzenie klucza z hasła + salt do szyfrowania kluczy pryw.
+  - zxcvbn: sprawdzenie siły hasła
 
 ## Algorytmy
 - Argon2id: hashowanie haseł do db
@@ -109,58 +140,57 @@ E, IV_msg, Tag_msg, ciphertext, enc_K_msg, enc_file
 ![image](img/db.svg)
 ```DBML
 Table User {
-  id int
-  username varchar
+  id int [pk]
+  username varchar [unique]
   password_hash varchar
   //2FA
   enc_2fa_key string
+}
+
+Table UserKeys {
+  id int [pk]
+  user_id int [ref: - User.id]
+
   //public keys
   signing_pub_key string //Ed25519 - EdDSA
   encryption_pub_key string //Curve25519 - ECDH
   //private keys (zaszyfrowane hasłem)
   signing_priv_enc blob
   encryption_priv_enc blob
+  //IV
+  signing_priv_iv string
+  encryption_priv_iv string
 
   key_salt string //salt do Argon2/PBKDF2 przy deszyfrowaniu kluczy
 }
 
 Table Message {
-  id int
-  sender_id int
+  id int [pk]
+  sender_id int [ref: > User.id]
   //Treść
-  content_enc blob
-  iv blob
-  GCM_tag string
+  content_enc blob // + tag
+  iv blob // do contentu
   //Ephemeral key nadawcy do ECDH (unikalny do wiadomości)
   eph_public_key string
-
   created_at datetime
 }
 
 Table Message_Recipients {
-  id int
-  message_id int
-  recipient_id int
+  id int [pk]
+  message_id int [ref: > Message.id]
+  recipient_id int [ref: > User.id]
   // klucz AES wiadomości, zaszyfrowany HKDF(ECDH) do konkretnego odbiorcy
-  enc_AES_key blob
+  enc_AES_key string
+  iv blob //do klucza
   is_read boolean
 }
 
 Table Attachment {
-  id int
-  message_id int
+  id int [pk]
+  message_id int [ref: > Message.id]
   file_path string
   mime_type string
 }
-
-
-Ref: "Message"."sender_id" < "User"."id"
-
-Ref: "Message_Recipients"."message_id" < "Message"."id"
-
-Ref: "Message_Recipients"."recipient_id" < "User"."id"
-
-Ref: "Attachment"."message_id" - "Message"."id"
 
 ```
 
