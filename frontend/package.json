@@ -10,9 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.1.0",
+    "@noble/curves": "^2.0.1",
+    "@zxcvbn-ts/core": "^3.0.4",
+    "@zxcvbn-ts/language-common": "^3.0.4",
+    "@zxcvbn-ts/language-en": "^3.0.2",
+    "@zxcvbn-ts/language-pl": "^3.0.2",
     "antd": "^6.1.4",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-router": "^7.12.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

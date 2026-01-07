@@ -7,7 +7,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # instalacja zależności (clean install - te same wersje co w lockfile)
-RUN npm ci
+RUN npm i
+# później zmień i -> ci
 
 # kopia kodu
 COPY . .

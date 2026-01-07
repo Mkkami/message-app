@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from app.models.user import User, UserKeys
 from app.schemas.user import UserCreate
+from zxcvbn import zxcvbn
+
+from app.exceptions.weak_password_exception import WeakPasswordException
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
@@ -11,6 +14,14 @@ class UserService:
         self.db = db
 
     def create_user(self, user: UserCreate):
+        if self.get_user_by_username(user.username):
+            raise ValueError("Username already exists")
+        
+        passwd_validate = zxcvbn(user.password)
+
+        if passwd_validate['score'] < 3:
+            raise WeakPasswordException(passwd_validate['feedback'])
+
         hashed_password = pwd_context.hash(user.password)
 
         new_user = User(

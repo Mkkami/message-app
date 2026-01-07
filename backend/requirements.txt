@@ -3,8 +3,10 @@ uvicorn[standard]
 cryptography
 pyotp
 python-multipart
-passlib[argon2]
+# passlib[argon2]
 sqlalchemy
 pydantic-settings
 itsdangerous
 alembic
+zxcvbn
+argon2-cffi
