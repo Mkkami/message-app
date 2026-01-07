@@ -1,6 +1,6 @@
 
 # build
-FROM node:20-slim AS build
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ FROM nginx:stable-alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # kopiowanie zbudowanej apk
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # kopiowanie własnej konfiguracji nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
