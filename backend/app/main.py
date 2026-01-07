@@ -9,7 +9,12 @@ from app.core.db import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
-app = fastapi.FastAPI()
+app = fastapi.FastAPI(
+    root_path="/api",
+    docs_url="/docs",
+    openapi_url="/openapi.json"
+    
+)
 
 app.add_middleware(
     SessionMiddleware,
@@ -22,7 +27,7 @@ app.include_router(user_router)
 
 @app.get("/")
 def read_root():
-    return "Hello there."
+    return "Hello there. 11221"
 
 @app.get("/debug")
 def debug_endpoint():
