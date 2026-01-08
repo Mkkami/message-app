@@ -40,13 +40,24 @@ function Register() {
         setPasswordResult(result);
     }
 
+    const usernameAllowedCharacters = (username: string) => {
+        const regex = /^[a-zA-Z0-9_-]+$/;
+        return regex.test(username);
+    }
+
 
     return (
     <Row align="middle" style={{ minHeight: '100vh' }}>
         <Col xs={24} md={12}>
             <Card title="Register" style={{ maxWidth: 400, margin: '50px auto'}}>
                 <Form layout="vertical" onFinish={onFinish}>
-                    <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please input your username!' }]}>
+                    <Form.Item label="Username" name="username" rules={[
+                        { required: true, message: 'Please input your username!' },
+                        { 
+                            pattern: /^[a-zA-Z0-9_-]+$/,
+                            message: 'Username can only contain letters, numbers, - and _.'
+                        }
+                         ]}>
                         <Input placeholder="username" />
                     </Form.Item>
 
