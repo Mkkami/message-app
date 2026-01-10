@@ -9,7 +9,6 @@ class Message(Base):
     sender_id = Column(Integer, ForeignKey("users.id"))
 
     content = Column(LargeBinary)
-    iv = Column(LargeBinary)
 
     eph_pub_key = Column(String)
     

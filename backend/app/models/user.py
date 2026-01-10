@@ -1,32 +1,33 @@
 
-from xxlimited import Str
-from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, String
-from sqlalchemy.orm import relationship
+from typing import Optional
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.core.db import Base
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    enc_2fa_key = Column(String, nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
+    
+    totp_secret: Mapped[Optional[str]] = mapped_column(nullable=True)
+    is_2fa_enabled: Mapped[bool] = mapped_column(default=False)
 
-    keys = relationship("UserKeys", back_populates="owner", uselist=False)
+    keys: Mapped["UserKeys"] = relationship("UserKeys", back_populates="owner", uselist=False)
 
 class UserKeys(Base):
     __tablename__ = "user_keys"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
-    signing_pub_key = Column(String)
-    encryption_pub_key = Column(String)
-
-    signing_priv_key = Column(String)
-    encryption_priv_key = Column(String)
+    signing_pub_key: Mapped[str] = mapped_column()
+    encryption_pub_key: Mapped[str] = mapped_column()
+    signing_priv_key: Mapped[str] = mapped_column()
+    encryption_priv_key: Mapped[str] = mapped_column()
     
-    key_salt = Column(String)
+    key_salt: Mapped[str] = mapped_column()
 
-    owner = relationship("User", back_populates="keys")
+    owner: Mapped["User"] = relationship("User", back_populates="keys")

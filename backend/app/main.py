@@ -5,6 +5,7 @@ from app.core.settings import settings
 
 from app.models import user, message
 from app.api.user import router as user_router
+from app.api.totp import router as totp_router
 from app.core.db import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -20,10 +21,12 @@ app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SESSION_SECRET_KEY,
     session_cookie="session",
+    same_site="lax", # csrf
     max_age=3600 # 1 hour
 )
 
 app.include_router(user_router)
+app.include_router(totp_router)
 
 @app.get("/")
 def read_root():
