@@ -1,0 +1,41 @@
+
+services:
+  # backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      # mapowanie folderu aby sqlite i załączniki nie zniknęły po restarcie
+      - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+    
+    env_file:
+      - .env
+    
+    expose:
+      - "8000"
+    restart: always
+
+  # frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    restart: always
+
+  # reverse proxy
+  proxy:
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+      - "443:443" # https
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: always
