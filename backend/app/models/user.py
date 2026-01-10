@@ -1,4 +1,5 @@
 
+from xxlimited import Str
 from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
 from app.core.db import Base
@@ -23,11 +24,9 @@ class UserKeys(Base):
     signing_pub_key = Column(String)
     encryption_pub_key = Column(String)
 
-    signing_priv_key = Column(LargeBinary)
-    encryption_priv_key = Column(LargeBinary)
-
-    signing_priv_iv = Column(LargeBinary)
-    encryption_priv_iv = Column(LargeBinary)
+    signing_priv_key = Column(String)
+    encryption_priv_key = Column(String)
+    
     key_salt = Column(String)
 
     owner = relationship("User", back_populates="keys")

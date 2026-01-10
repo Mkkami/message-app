@@ -21,6 +21,5 @@ class MessageRecipient(Base):
     id = Column(Integer, primary_key=True, index=True)
     message_id = Column(Integer, ForeignKey("messages.id"))
     recipient_id = Column(Integer, ForeignKey("users.id"))
-    enc_aes_key = Column(LargeBinary)
-    iv = Column(LargeBinary)
+    enc_aes_key = Column(String)
     is_read = Column(Boolean, default=False)

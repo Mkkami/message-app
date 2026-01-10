@@ -19,12 +19,6 @@ def register(
         ):
     user_service = UserService(db)
 
-    if user_service.get_user_by_username(user.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username already exists."
-        )
-
     try:
         message = user_service.create_user(user)
     except ValueError as ve:
