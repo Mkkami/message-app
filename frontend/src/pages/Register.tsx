@@ -2,6 +2,7 @@ import { bytesToHex } from "@noble/curves/utils.js";
 import { zxcvbn, type ZxcvbnResult } from "@zxcvbn-ts/core";
 import { Button, Card, Col, Form, Input, message, Row } from "antd";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import PasswordStrengthIndicator from "../components/PassStrengthIndicator";
 import { API_CONFIG } from "../config/api";
 import { setupZxcvbn } from "../config/password";
@@ -13,6 +14,7 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<number>(0);
     const [passwordResult, setPasswordResult] = useState<ZxcvbnResult>(zxcvbn(""));
+    const navigate = useNavigate();
 
     const onFinish = async (values: any) => {
         setLoading(true);
@@ -74,8 +76,7 @@ function Register() {
                 throw new Error("Registration failed");
             }
 
-            message.success("Registration successful! You can now log in.");
-            // 2fa setup page redirect
+            navigate('/2fa')
 
         } catch (error) {
             message.error("Registration failed. Please try again.");
