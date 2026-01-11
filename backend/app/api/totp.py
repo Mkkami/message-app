@@ -1,8 +1,5 @@
-import base64
-import io
-from fastapi import APIRouter, Depends, HTTPException, Request, security, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 import pyotp
-import qrcode
 
 from app.core.session import get_current_user_id
 from app.core.db import get_db
@@ -71,7 +68,7 @@ async def verify_2fa(
     if totp.verify(code, valid_window=1):
         user.is_2fa_enabled = True
         db.commit()
-        request.session["is_2fa_authenticated"] = True
+        request.session["2fa_verified"] = True
         return {"status": "ok"}
     
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 2FA token")

@@ -51,6 +51,15 @@ class UserService:
 
         return new_user
     
+    def validate_login(self, username: str, password: str) -> User | None:
+        user = self.get_user_by_username(username)
+        if not user:
+            return None
+        
+        if pwd_context.verify(password, user.password_hash):
+            return user
+        return None
+    
 
     def get_user_by_username(self, username: str):
         return self.db.query(User).filter(User.username == username).first()
