@@ -1,4 +1,5 @@
 import fastapi
+from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.settings import settings
@@ -14,7 +15,6 @@ app = fastapi.FastAPI(
     root_path="/api",
     docs_url="/docs",
     openapi_url="/openapi.json"
-    
 )
 
 app.add_middleware(

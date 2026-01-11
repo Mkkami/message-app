@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import App from "../App";
+import Login from "../pages/Login";
 import Register from "../pages/Register";
 import TwoFactorAuth from "../pages/TwoFactorAuth";
 
@@ -14,8 +15,16 @@ const router = createBrowserRouter([
         element: <Register />,
     },
     {
-        path: "/2fa",
-        element: <TwoFactorAuth />
+        path: "/login",
+        element: <Login />
+    },
+    {
+        path: "/2fa/setup",
+        element: <TwoFactorAuth mode="setup" />,
+    },
+    {
+        path: "/2fa/verify",
+        element: <TwoFactorAuth mode="verify" />
     }
 ])
 export default router;

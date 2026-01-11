@@ -72,11 +72,14 @@ function Register() {
                 body: JSON.stringify(payload),
             });
 
+            const data = await request.json();
+
             if (!request.ok) {
-                throw new Error("Registration failed");
+                message.error(`Registration failed. ${data.detail.warning}`);
+                return;
             }
 
-            navigate('/2fa')
+            navigate('/2fa/setup');
 
         } catch (error) {
             message.error("Registration failed. Please try again.");

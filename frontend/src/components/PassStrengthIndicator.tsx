@@ -35,7 +35,7 @@ function PasswordStrengthIndicator({ result }: Props) {
                     "Avoid using personal information.",
                 ]}
                 renderItem={item =>(
-                    <List.Item style={{ padding: '4px 0', border: 'none'}}>
+                    <List.Item key={item} style={{ padding: '4px 0', border: 'none'}}>
                         <Text><InfoCircleOutlined/> {item}</Text>
                     </List.Item>
                 )}
@@ -45,7 +45,7 @@ function PasswordStrengthIndicator({ result }: Props) {
                 bordered={false}
                 dataSource={result.feedback.suggestions.length > 0 ? result.feedback.suggestions : ["Good job! Your password looks strong."]}
                 renderItem={item =>(
-                    <List.Item style={{ padding: '4px 0', border: 'none'}}>
+                    <List.Item key={item} style={{ padding: '4px 0', border: 'none'}}>
                         <Text><InfoCircleOutlined/> {item}</Text>
                     </List.Item>
                 )}
