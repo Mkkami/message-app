@@ -2,9 +2,11 @@ import { bytesToHex } from "@noble/curves/utils.js";
 import { zxcvbn, type ZxcvbnResult } from "@zxcvbn-ts/core";
 import { Button, Card, Col, Form, Input, message, Row } from "antd";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import PasswordStrengthIndicator from "../components/PassStrengthIndicator";
 import { API_CONFIG } from "../config/api";
 import { setupZxcvbn } from "../config/password";
+import { useUser } from "../context/UserContext";
 import { keyService } from "../service/keyService";
 
 setupZxcvbn();
@@ -13,17 +15,18 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<number>(0);
     const [passwordResult, setPasswordResult] = useState<ZxcvbnResult>(zxcvbn(""));
+    const { setTempPassword } = useUser();
+    const navigate = useNavigate();
 
     const onFinish = async (values: any) => {
         setLoading(true);
 
-        checkUsernameAvailability(values.username).then(exists => {
-            if (exists) {
-                message.error("Username already exists. Please choose another one.");
-                setLoading(false);
-                return;
-            }
-        });
+        const exists = await checkUsernameAvailability(values.username);
+        if (exists) {
+            message.error("Username already exists. Please choose another one.");
+            setLoading(false);
+            return;
+        }
 
         try {
             // generate salt
@@ -62,6 +65,7 @@ function Register() {
             }
             console.log("Payload: ", payload);
 
+            // send request
             const request = await fetch(`${API_CONFIG.BASE_URL}/users/register`, {
                 method: 'POST',
                 headers: {
@@ -70,12 +74,23 @@ function Register() {
                 body: JSON.stringify(payload),
             });
 
+            const data = await request.json();
+
+            // check for errors
             if (!request.ok) {
-                throw new Error("Registration failed");
+                if (request.status === 409) {
+                    message.error(`Registration failed. Username already exists.`);
+                    return;
+                } else {
+                    message.error(`Registration failed. ${data.details.warning}`)
+                    return;
+                }
             }
 
-            message.success("Registration successful! You can now log in.");
-            // 2fa setup page redirect
+            // save passwd to decrypt keys after successful 2fa setup
+            setTempPassword(values.password);
+
+            navigate('/2fa/setup');
 
         } catch (error) {
             message.error("Registration failed. Please try again.");

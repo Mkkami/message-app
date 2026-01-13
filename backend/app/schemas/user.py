@@ -22,3 +22,7 @@ class UserRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RegisterSuccess(BaseModel):
+    message: str
+    redirect: str
