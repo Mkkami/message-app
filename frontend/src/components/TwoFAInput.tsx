@@ -1,9 +1,11 @@
 import { Button, Form, Input, message } from "antd";
 import { useNavigate } from "react-router";
 import { API_CONFIG } from "../config/api";
+import { useUser } from "../context/UserContext";
 
 function TwoFAInput() {
     const navigate = useNavigate();
+    const { getKeys } = useUser();
     
     const verifyCode = async (values: {token: string}) => {
         try {
@@ -25,6 +27,10 @@ function TwoFAInput() {
             if (data.status === "ok") {
                 message.success("2FA complete!");
                 // jakis redirect
+
+                // pobieranie kluczy po 2fa
+                // await getKeys();
+
                 navigate('/');
 
                 return;

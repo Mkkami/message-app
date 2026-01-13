@@ -6,6 +6,7 @@ from app.core.db import get_db
 from app.schemas.user import RegisterSuccess, UserCreate
 from app.services.user_service import UserService
 from app.exceptions.weak_password_exception import WeakPasswordException
+from app.models.user import User, UserKeys
 
 router = APIRouter(
     prefix="/users",
@@ -24,7 +25,7 @@ def register(
         new_user = user_service.create_user(user)
     except ValueError as ve:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(ve)
         )
     except WeakPasswordException as wpe:
@@ -34,7 +35,7 @@ def register(
         )
     
     request.session["user_id"] = new_user.id
-    request.session["is_2fa_completed"] = False
+    request.session["2fa_verified"] = False
 
     return { 
         "message": "User registered successfully",
@@ -51,3 +52,40 @@ def check_username(
     if user_service.get_user_by_username(username):
         return {"exists": True}
     return {"exists": False}
+
+@router.get("/me/keys")
+def get_my_keys(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    user_id = request.session.get("user_id")
+
+    if not request.session.get("2fa_verified") and request.session.get("user_id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="2FA verification required"
+        )
+    
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {
+        "keys": {
+            "signing_pub_key": user.keys.signing_pub_key,
+            "encryption_pub_key": user.keys.encryption_pub_key,
+            "signing_priv_key": user.keys.signing_priv_key,
+            "encryption_priv_key": user.keys.encryption_priv_key,
+            "key_salt": user.keys.key_salt
+        }
+    }

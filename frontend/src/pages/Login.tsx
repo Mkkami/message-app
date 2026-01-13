@@ -2,12 +2,14 @@ import { Button, Card, Flex, Form, Input, message, Typography } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { API_CONFIG } from "../config/api";
+import { useUser } from "../context/UserContext";
 
 const { Title } = Typography;
 
 function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { setTempPassword } = useUser();
 
     const onFinish = async (values: {username: string, password: string}) => {
         setLoading(true);
@@ -29,6 +31,9 @@ function Login() {
                 return;
             } 
             const data = await response.json();
+
+            setTempPassword(values.password);
+
             navigate(`/2fa/${data.target}`)
 
         } catch (error) {

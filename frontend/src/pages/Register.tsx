@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import PasswordStrengthIndicator from "../components/PassStrengthIndicator";
 import { API_CONFIG } from "../config/api";
 import { setupZxcvbn } from "../config/password";
+import { useUser } from "../context/UserContext";
 import { keyService } from "../service/keyService";
 
 setupZxcvbn();
@@ -14,18 +15,18 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<number>(0);
     const [passwordResult, setPasswordResult] = useState<ZxcvbnResult>(zxcvbn(""));
+    const { setTempPassword } = useUser();
     const navigate = useNavigate();
 
     const onFinish = async (values: any) => {
         setLoading(true);
 
-        checkUsernameAvailability(values.username).then(exists => {
-            if (exists) {
-                message.error("Username already exists. Please choose another one.");
-                setLoading(false);
-                return;
-            }
-        });
+        const exists = await checkUsernameAvailability(values.username);
+        if (exists) {
+            message.error("Username already exists. Please choose another one.");
+            setLoading(false);
+            return;
+        }
 
         try {
             // generate salt
@@ -64,6 +65,7 @@ function Register() {
             }
             console.log("Payload: ", payload);
 
+            // send request
             const request = await fetch(`${API_CONFIG.BASE_URL}/users/register`, {
                 method: 'POST',
                 headers: {
@@ -74,10 +76,19 @@ function Register() {
 
             const data = await request.json();
 
+            // check for errors
             if (!request.ok) {
-                message.error(`Registration failed. ${data.detail.warning}`);
-                return;
+                if (request.status === 409) {
+                    message.error(`Registration failed. Username already exists.`);
+                    return;
+                } else {
+                    message.error(`Registration failed. ${data.details.warning}`)
+                    return;
+                }
             }
+
+            // save passwd to decrypt keys after successful 2fa setup
+            setTempPassword(values.password);
 
             navigate('/2fa/setup');
 
