@@ -1,24 +1,33 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, func, func
+import uuid
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.sql import func
 from app.core.db import Base
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 
 class Message(Base):
     __tablename__ = "messages"
 
-    id = Column(Integer, primary_key=True, index=True)
-    sender_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    content = Column(LargeBinary)
+    ciphertext = Column(Text, nullable=False) # iv + ciphertext + tag
 
-    eph_pub_key = Column(String)
+    eph_key = Column(String, nullable=False)
     
-    created_at = Column(DateTime, server_default=func.now())
+    # created_at = Column(DateTime(Timezone=True), server_default=func.now())
+    recipients = relationship("MessageRecipient", back_populates="message")
+    sender = relationship("User")
     
 class MessageRecipient(Base):
     __tablename__ = "message_recipients"
 
-    id = Column(Integer, primary_key=True, index=True)
-    message_id = Column(Integer, ForeignKey("messages.id"))
-    recipient_id = Column(Integer, ForeignKey("users.id"))
-    enc_aes_key = Column(String)
-    is_read = Column(Boolean, default=False)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    message_id = Column(String, ForeignKey("messages.id"), nullable=False)
+    recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    enc_aes_key = Column(Text, nullable=False)
+
+    is_read : Mapped[bool] = mapped_column(Boolean, default=False)
+
+    message = relationship("Message", back_populates="recipients")
+    recipient = relationship("User")

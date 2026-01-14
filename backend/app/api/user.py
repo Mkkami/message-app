@@ -89,3 +89,23 @@ def get_my_keys(
             "key_salt": user.keys.key_salt
         }
     }
+
+@router.get("/keys")
+def search_user(
+    username: str,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.username == username).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {
+        "keys": {
+            "signing_pub_key": user.keys.signing_pub_key,
+            "encryption_pub_key": user.keys.encryption_pub_key
+        }
+    }
