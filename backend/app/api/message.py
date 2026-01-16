@@ -65,7 +65,7 @@ def get_inbox(
     return [
         {
             "id": ent.message_id,
-            "sender_id": ent.message.sender_id,
+            "sender_username": ent.message.sender.username,
             "is_read": ent.is_read
         }
         for ent in inbox_entries
