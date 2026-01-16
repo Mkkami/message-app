@@ -36,8 +36,8 @@ function Login() {
 
             navigate(`/2fa/${data.target}`)
 
-        } catch (error) {
-            console.error("Login error:", error);
+        } catch {
+            message.error("Login failed. Please try again.");
         } finally {
             setLoading(false);
         }

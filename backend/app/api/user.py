@@ -90,8 +90,8 @@ def get_my_keys(
         }
     }
 
-@router.get("/keys")
-def search_user(
+@router.get("/search")
+def search_users(
     username: str,
     db: Session = Depends(get_db)
 ):
@@ -102,10 +102,9 @@ def search_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     return {
-        "keys": {
-            "signing_pub_key": user.keys.signing_pub_key,
-            "encryption_pub_key": user.keys.encryption_pub_key
-        }
+        "id": user.id,
+        "username": user.username,
+        "publicKey": user.keys.encryption_pub_key
     }

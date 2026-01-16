@@ -8,7 +8,7 @@ class Recipient(BaseModel):
     enc_aes_key: str
 
 class MessageCreate(BaseModel):
-    ciphertext: str = Field(..., max_length=2_000_000) # 2 MB
+    ciphertext: str = Field(..., max_length=4_000_000) # 4 MB (text + attachment)
     eph_key: str = Field(..., min_length=64, max_length=64)
     recipients: List[Recipient] = Field(..., min_length=1, max_length=10) # max 10 recipients
 

@@ -1,11 +1,10 @@
 import { Button, Form, Input, message } from "antd";
 import { useNavigate } from "react-router";
 import { API_CONFIG } from "../config/api";
-import { useUser } from "../context/UserContext";
 
 function TwoFAInput() {
     const navigate = useNavigate();
-    const { getKeys } = useUser();
+    // const { getKeys } = useUser();
     
     const verifyCode = async (values: {token: string}) => {
         try {
@@ -36,7 +35,7 @@ function TwoFAInput() {
                 return;
             }
             message.error("Verification failed. Please try again.");
-        } catch (error) {
+        } catch {
             message.error("Network error. Try again later");
         }
     }
