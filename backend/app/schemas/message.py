@@ -4,11 +4,12 @@ from pydantic import BaseModel, Field
 
 
 class Recipient(BaseModel):
-    user_id: str
+    recipient_id: int
     enc_aes_key: str
 
 class MessageCreate(BaseModel):
     ciphertext: str = Field(..., max_length=4_000_000) # 4 MB (text + attachment)
+    signature: str = Field(..., min_length=128, max_length=128)
     eph_key: str = Field(..., min_length=64, max_length=64)
     recipients: List[Recipient] = Field(..., min_length=1, max_length=10) # max 10 recipients
 
@@ -17,11 +18,12 @@ class MessageCreate(BaseModel):
 '''
 message: {
     ciphertext,
+    signature,
     eph_key
 },
 recipients: [
     {
-        user_id,
+        recipient_id,
         enc_aes_key
     }
 ]

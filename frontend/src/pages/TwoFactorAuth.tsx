@@ -43,7 +43,7 @@ function TwoFactorAuth({mode}: {mode: "setup" | "verify"}) {
             fetch2FASetup();
         else
             setLoading(false);
-    }, [mode, fetch2FASetup]);
+    }, [mode]);
 
     
 

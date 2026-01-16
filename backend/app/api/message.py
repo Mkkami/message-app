@@ -36,7 +36,7 @@ def send_message(
     for rec in message.recipients:
         new_recipient = MessageRecipient(
             message_id=new_message.id,
-            recipient_id=int(rec.user_id),
+            recipient_id=rec.recipient_id,
             enc_aes_key=rec.enc_aes_key
         )
         db.add(new_recipient)
@@ -102,6 +102,7 @@ def get_message(
     return {
         "sender_id": message.sender_id,
         "ciphertext": message.ciphertext,
+        "signature": message.signature,
         "eph_key": message.eph_key,
         "enc_aes_key": message_recipient.enc_aes_key
     }

@@ -2,6 +2,9 @@ import { FileOutlined, PaperClipOutlined, SendOutlined } from "@ant-design/icons
 import { Button, Card, Col, Flex, Input, message, Row, Upload } from "antd";
 import { useState } from "react";
 import SelectUsers from "../components/SelectUsers";
+import { API_CONFIG } from "../config/api";
+import { useUser } from "../context/UserContext";
+import { messageService } from "../service/messageService";
 import type { UserRecipient } from "../types/user";
 
 
@@ -10,6 +13,7 @@ function SendMessage() {
     const [text, setText] = useState<string>("");
     const [file, setFile] = useState<File | null>(null);
     const [isSending, setIsSending] = useState<boolean>(false);
+    const keys = useUser().keys;
 
     const removeRecipient = (userId: number) => {
         setRecipients(recipients.filter(user => user.id !== userId));
@@ -20,8 +24,57 @@ function SendMessage() {
     }
 
     const handleSend = async () => {
-        // Implementation for sending message will go here
+        console.log(recipients, text, file, keys);
+
+        if (recipients.length === 0 || recipients === null) {
+            message.error("Please add at least one recipient or type a message.");
+            return;
+        }
+        if (!text.trim() && !file) {
+            message.error("Cannot send an empty message.");
+            return;
+        }
+
+        if (!keys) {
+            message.error("Encryption keys are not available.");
+            return;
+        }
+
         setIsSending(true);
+        try {
+            const encryptedData = await messageService.encryptMessage(
+                text,
+                file,
+                recipients,
+                keys.signing.privateKey,
+            );
+
+            const response = await fetch(`${API_CONFIG.BASE_URL}/messages/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ciphertext: encryptedData.ciphertext,
+                    signature: encryptedData.signature,
+                    eph_key: encryptedData.ephKey,
+                    recipients: encryptedData.recipients,
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error("Failed to send message");
+            }
+            
+            message.success("Message sent!");
+            setText("");
+            setFile(null);
+            setRecipients([]);
+        } catch {
+            message.error("Error sending message.");
+        } finally {
+            setIsSending(false);
+        }
         console.log(recipients);
     }
 

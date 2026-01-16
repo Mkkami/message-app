@@ -1,4 +1,5 @@
 import { Button } from "antd";
+import { Link } from "react-router";
 import { useUser } from "./context/UserContext";
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
     <div>
       <h3>Hello</h3>
       <Button type="primary" onClick={getKeys}>Get keys</Button>
+      <Button type="link"><Link to="/send">Send message</Link></Button>
     </div>
   )
 }
