@@ -1,5 +1,5 @@
 import { FileOutlined, PaperClipOutlined, SendOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Flex, Input, message, Row, Upload } from "antd";
+import { Button, Card, Col, Divider, Flex, Input, message, Row, Typography, Upload } from "antd";
 import { useState } from "react";
 import SelectUsers from "../components/SelectUsers";
 import { API_CONFIG } from "../config/api";
@@ -7,6 +7,7 @@ import { useUser } from "../context/UserContext";
 import { messageService } from "../service/messageService";
 import type { UserRecipient } from "../types/user";
 
+const { Title } = Typography;
 
 function SendMessage() {
     const [recipients, setRecipients] = useState<UserRecipient[]>([]);
@@ -80,9 +81,11 @@ function SendMessage() {
 
 
     return (
-        <Row gutter={24}>
-            <Col>
-                <Card title="Select Recipients">
+        <Row align="middle" justify="center" style={{minHeight: "100vh"}}>
+            <Col xs={6}>
+                <Card title="Select Recipients" style={{maxWidth: 400, margin: "auto"}}>
+                    <Card.Meta description="You can send a message to yourself or others" />
+                    <Divider />
                     <SelectUsers
                         users={recipients}
                         onAddUser={addRecipient}
@@ -91,8 +94,8 @@ function SendMessage() {
                 </Card>
             </Col>
             {/* Treść wiadomości */}
-            <Col>
-                <Card title="Message" variant="outlined">
+            <Col xs={12}>
+                <Card title="Message" style={{maxWidth: 800, margin: "auto"}}>
                     <Flex vertical gap="middle">
                         <Input.TextArea 
                             rows={6}

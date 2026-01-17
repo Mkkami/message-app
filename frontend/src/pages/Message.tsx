@@ -70,31 +70,32 @@ function Message() {
     };
 
     return (
-        <Flex vertical gap="middle">
-            
-            <Button onClick={fetchMessage}>Reload</Button>
-            <Button onClick={getKeys}>Load Keys</Button>
+        <Flex vertical gap="small" align="center" style={{minHeight: "100vh", padding: 20}}>
 
             <Title level={2}>Message</Title>
-            <Divider />
-            <p>
+            <Divider style={{ margin: "0"}} />
+            
+            <Flex vertical gap="middle" style={{maxWidth: 800}} align="center" justify="center">
+
+            <Text >
                 {messageData?.text}
-            </p>
+            </Text>
 
             {messageData?.attachment && (
                 <Card size="small" title="Attachment">
-                    <Flex justify="space-between" align="center">
+                    <Flex justify="space-between" align="center" gap="large">
                         <Text strong>{messageData.attachment.name}</Text>
                         <Button 
                             type="primary"
                             icon={<DownloadOutlined />}
                             onClick={handleDownload}
-                        >
+                            >
                             Download
                         </Button>
                     </Flex>
                 </Card>
             )}
+            </Flex>
             
         </Flex>
     )

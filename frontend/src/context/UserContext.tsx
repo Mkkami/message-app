@@ -1,4 +1,3 @@
-import { Button, Form, Input, Modal } from "antd";
 import { createContext, useContext, useState } from "react";
 import { keyService } from "../service/keyService";
 import { mapApiKeysToUserKeys, type UserKeyBundle } from "../types/keys";
@@ -19,7 +18,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({children}: {children: React.ReactNode}) => {
     const [keys, setKeys] = useState<UserKeyBundle | null>(null);
     const [tempPassword, setTempPassword] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
     const logout = () => {
         // setUsername(null);
@@ -30,7 +29,8 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
 
     const getKeys = async () => {
         if (!tempPassword) {
-            setIsModalOpen(true);
+            window.location.href = '/login';
+            // setIsModalOpen(true);
             return;
         }
 
@@ -67,11 +67,11 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
         }
     }
 
-    const handlePasswordSubmit = (values: {password: string}) => {
-        //  validate with backend??
-        setTempPassword(values.password);
-        setIsModalOpen(false);
-    }
+    // const handlePasswordSubmit = (values: {password: string}) => {
+
+    //     setTempPassword(values.password);
+    //     setIsModalOpen(false);
+    // }
 
     return (
         <UserContext.Provider value={{
@@ -79,7 +79,7 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
             setKeys, setTempPassword, logout, getKeys
         }}>
             {children}
-            <Modal
+            {/* <Modal
                 title="Input password"
                 open={isModalOpen}
                 footer={null}
@@ -99,7 +99,7 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
                     </Form.Item>
                     <Button type="primary" htmlType="submit">Unlock</Button>
                 </Form>
-            </Modal>
+            </Modal> */}
         </UserContext.Provider>
     )
 }
