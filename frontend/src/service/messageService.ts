@@ -1,5 +1,6 @@
 import { ed25519, x25519 } from "@noble/curves/ed25519.js";
 import { bytesToHex, hexToBytes } from "@noble/curves/utils.js";
+import type { Message } from "../types/message";
 import type { UserRecipient } from "../types/user";
 import { keyService } from "./keyService";
 
@@ -108,7 +109,7 @@ export const messageService = {
         ephKeyHex: string,
         senderSignKey: string,
         myEncKey: string
-    ): Promise<any> {
+    ): Promise<Message> {
         // sprawdzenie podpisu
         const dataToVerify = hexToBytes(ciphertextWithIv + ephKeyHex);
         const signatureBytes = hexToBytes(signatureHex);

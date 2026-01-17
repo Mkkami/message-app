@@ -105,5 +105,6 @@ def get_message(
         "ciphertext": message.ciphertext,
         "signature": message.signature,
         "eph_key": message.eph_key,
-        "enc_aes_key": message_recipient.enc_aes_key
+        "enc_aes_key": message_recipient.enc_aes_key,
+        "signature_pubkey": message.sender.keys.signing_pub_key
     }

@@ -1,39 +1,102 @@
-import { message } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import { Button, Card, Divider, Flex, message, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { useUser } from "../context/UserContext";
+import { messageService } from "../service/messageService";
+import type { Message } from "../types/message";
+
+const { Title, Text } = Typography;
 
 function Message() {
     const {id } = useParams();
     const [loading, setLoading] = useState(true);
+    const { keys, getKeys } = useUser();
+    const [messageData, setMessageData] = useState<Message | null>(null);
+
+    const fetchMessage = async () => {
+        console.log(keys);
+        if (!keys) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/messages/${id}`);
+            if (!response.ok) {
+
+                return;
+            }
+
+            const data = await response.json();
+
+            console.log(data);
+
+            messageService.decryptMessage(
+                data.ciphertext, 
+                data.signature, 
+                data.enc_aes_key, 
+                data.eph_key, 
+                data.signature_pubkey, 
+                keys.encryption.privateKey
+            ).then((decrypted) => {
+                console.log(decrypted);
+                setMessageData(decrypted);
+            }).catch((err) => {
+                message.error("Failed to decrypt message");
+            });
+
+
+        } catch {
+            message.error("Failed to load message");
+        } finally {
+            setLoading(false);
+        }
+    }
 
 
     useEffect(() => {
-        
-        const fetchMessage = async () => {
-            try {
-                const response = await fetch(`/api/messages/${id}`);
-                if (!response.ok) {
-
-                    return;
-                }
-
-                const data = await response.json();
-
-
-            } catch {
-                message.error("Failed to load message");
-            } finally {
-                setLoading(false);
-            }
-        }
-        setLoading(true);
         fetchMessage();
     }, [id])
 
+    const handleDownload = () => {
+        if (!messageData || !messageData.attachment) {
+            return;
+        }
+        const {data, name, type} = messageData.attachment;
+        const link = document.createElement("a");
+        link.href = `data:${type};base64,${data}`;
+        link.download = name;
+        link.click();
+    };
+
     return (
-        <div>
+        <Flex vertical gap="middle">
             
-        </div>
+            <Button onClick={fetchMessage}>Reload</Button>
+            <Button onClick={getKeys}>Load Keys</Button>
+
+            <Title level={2}>Message</Title>
+            <Divider />
+            <p>
+                {messageData?.text}
+            </p>
+
+            {messageData?.attachment && (
+                <Card size="small" title="Attachment">
+                    <Flex justify="space-between" align="center">
+                        <Text strong>{messageData.attachment.name}</Text>
+                        <Button 
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            onClick={handleDownload}
+                        >
+                            Download
+                        </Button>
+                    </Flex>
+                </Card>
+            )}
+            
+        </Flex>
     )
 
 }
