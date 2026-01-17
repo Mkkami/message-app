@@ -28,6 +28,7 @@ def send_message(
     new_message = Message(
         sender_id=current_user_id,
         ciphertext=message.ciphertext,
+        signature=message.signature,
         eph_key=message.eph_key
     )
     db.add(new_message)

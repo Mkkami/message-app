@@ -13,6 +13,8 @@ class Message(Base):
 
     ciphertext = Column(Text, nullable=False) # iv + ciphertext + tag
 
+    signature = Column(Text, nullable=False)
+
     eph_key = Column(String, nullable=False)
     
     # created_at = Column(DateTime(Timezone=True), server_default=func.now())
