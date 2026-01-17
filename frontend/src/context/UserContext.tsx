@@ -42,7 +42,7 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
                 }
             })
 
-            console.log("Fetching keys response", response);
+            // console.log("Fetching keys response", response);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch keys");
@@ -56,10 +56,10 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
 
             setKeys(decryptedKeys);
 
-            console.log("Decrypted keys", decryptedKeys);
+            // console.log("Decrypted keys", decryptedKeys);
 
         } catch {
-            console.error("Error fetching or decrypting keys:");
+            // console.error("Error fetching or decrypting keys:");
             logout();
         } finally {
             //

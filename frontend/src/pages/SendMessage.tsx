@@ -1,20 +1,30 @@
 import { FileOutlined, PaperClipOutlined, SendOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Divider, Flex, Input, message, Row, Typography, Upload } from "antd";
-import { useState } from "react";
+import { Button, Card, Col, Divider, Flex, Input, message, Row, Upload } from "antd";
+import { useEffect, useState } from "react";
 import SelectUsers from "../components/SelectUsers";
 import { API_CONFIG } from "../config/api";
 import { useUser } from "../context/UserContext";
 import { messageService } from "../service/messageService";
 import type { UserRecipient } from "../types/user";
 
-const { Title } = Typography;
+// const { Title } = Typography;
 
 function SendMessage() {
     const [recipients, setRecipients] = useState<UserRecipient[]>([]);
     const [text, setText] = useState<string>("");
     const [file, setFile] = useState<File | null>(null);
     const [isSending, setIsSending] = useState<boolean>(false);
-    const keys = useUser().keys;
+    const {keys, getKeys} = useUser();
+
+    useEffect(() => {
+        const checkKeys = async () => {
+            if (!keys) {
+                await getKeys();
+                return;
+            }
+        }
+        checkKeys();
+    }, [])
 
     const removeRecipient = (userId: number) => {
         setRecipients(recipients.filter(user => user.id !== userId));

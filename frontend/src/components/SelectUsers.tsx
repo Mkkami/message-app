@@ -50,7 +50,7 @@ function SelectUsers(props: SelectUsersProps) {
     return (
         <Flex vertical>
             <Flex>
-                <Input placeholder="Search user..." onChange={(e) => setCurrentUsername(e.target.value)}/>
+                <Input placeholder="Search user..." onChange={(e) => setCurrentUsername(e.target.value)} onPressEnter={() => searchUser(currentUsername)}/>
                 <Button type="primary" onClick={() => searchUser(currentUsername)}>Add</Button>
             </Flex>
             <List>

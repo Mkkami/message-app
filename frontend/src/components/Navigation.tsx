@@ -24,8 +24,8 @@ export const AppNavigation = () => {
 
     return (
         <div style={{position: 'fixed', top: 20, left: 20, zIndex: 1000}}>
-            <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={['click']}>
-                <Button size="large" icon={<MenuOutlined />} shape="circle" />
+            <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={['click']} >
+                <Button size="large" icon={<MenuOutlined />} shape="default" />
             </ Dropdown>
         </div>
     )
