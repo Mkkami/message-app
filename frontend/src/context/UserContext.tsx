@@ -58,8 +58,8 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
 
             console.log("Decrypted keys", decryptedKeys);
 
-        } catch (error) {
-            console.error("Error fetching or decrypting keys:", error);
+        } catch {
+            console.error("Error fetching or decrypting keys:");
             logout();
         } finally {
             //

@@ -29,14 +29,14 @@ function TwoFAInput() {
                 // jakis redirect
 
                 // pobieranie kluczy po 2fa
-                // await getKeys();
+                await getKeys();
 
                 navigate('/');
 
                 return;
             }
             message.error("Verification failed. Please try again.");
-        } catch (error) {
+        } catch {
             message.error("Network error. Try again later");
         }
     }

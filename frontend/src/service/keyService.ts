@@ -1,5 +1,7 @@
 import { ed25519, x25519 } from "@noble/curves/ed25519.js";
 import { bytesToHex, hexToBytes } from "@noble/curves/utils.js";
+import { hkdf } from "@noble/hashes/hkdf.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import type { KeyPair, UserKeyBundle } from "../types/keys";
 
 const enc = new TextEncoder();
@@ -49,7 +51,7 @@ export const keyService = {
             {
                 name: "PBKDF2",
                 salt: salt,
-                iterations: 600000,
+                iterations: ITERATIONS,
                 hash: "SHA-256"
             },
             baseKey,
@@ -84,7 +86,7 @@ export const keyService = {
 
     async decryptPrivateKey(encryptedHex: string, password: string, saltHex: string): Promise<string> {
         try {
-            const salt = hexToBytes(saltHex);
+            // const salt = hexToBytes(saltHex);
             const combined = hexToBytes(encryptedHex);
 
             const iv = combined.slice(0, 12);
@@ -118,5 +120,20 @@ export const keyService = {
                 privateKey: encryptionPrivKey,
             }
         }
+    },
+
+    // KEY EXCHANGE -----------------------------
+
+    async deriveSharedKey(myPrivateKeyHex: string, theirPublicKeyHex: string): Promise<Uint8Array> {
+        const myPriv = hexToBytes(myPrivateKeyHex);
+        const theirPub = hexToBytes(theirPublicKeyHex);
+
+        // DH
+        const sharedSecret = x25519.getSharedSecret(myPriv, theirPub);
+
+        // HKDF
+        const derivedKey = hkdf(sha256, sharedSecret, undefined, enc.encode("shared key"), 32);
+
+        return derivedKey
     }
 };

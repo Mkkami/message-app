@@ -7,6 +7,7 @@ from app.core.settings import settings
 from app.api.user import router as user_router
 from app.api.totp import router as totp_router
 from app.api.auth import router as auth_router
+from app.api.message import router as mess_router
 from app.core.db import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(user_router)
 app.include_router(totp_router)
 app.include_router(auth_router)
+app.include_router(mess_router)
 
 @app.get("/")
 def read_root():

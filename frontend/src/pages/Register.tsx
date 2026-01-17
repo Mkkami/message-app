@@ -92,7 +92,7 @@ function Register() {
 
             navigate('/2fa/setup');
 
-        } catch (error) {
+        } catch {
             message.error("Registration failed. Please try again.");
         } finally {
             setLoading(false);
