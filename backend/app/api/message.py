@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.message import Message, MessageRecipient
 from app.schemas.message import MessageCreate
+from app.core.session import get_current_user_id
 
 
 router = APIRouter(
@@ -108,3 +109,36 @@ def get_message(
         "enc_aes_key": message_recipient.enc_aes_key,
         "signature_pubkey": message.sender.keys.signing_pub_key
     }
+
+@router.delete("/{message_id}")
+def delete_message(
+    message_id: str,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user_id = get_current_user_id(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    if not request.session.get("2fa_verified"):
+        raise HTTPException(status_code=401, detail="2FA not verified")
+    
+    recipient_entry = db.query(MessageRecipient).filter(
+        MessageRecipient.message_id == message_id,
+        MessageRecipient.recipient_id == current_user_id
+    ).first()
+
+    if not recipient_entry:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    db.delete(recipient_entry)
+    db.commit()
+
+    remaining_links = db.query(Message).filter(Message.id == message_id).count()
+
+    if remaining_links == 0:
+        message = db.query(Message).filter(Message.id == message_id).first()
+        db.delete(message)
+        db.commit()
+
+    return {"status": "deleted"}
