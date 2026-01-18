@@ -1,4 +1,4 @@
-import { Button, Flex, QRCode, Typography } from "antd";
+import { Button, Flex, message, QRCode, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import TwoFAInput from "../components/TwoFAInput";
@@ -33,8 +33,9 @@ function TwoFactorAuth({mode}: {mode: "setup" | "verify"}) {
             const data = await response.json();
 
             setProps(data);
-        } catch (error) {
-            console.error('Error fetching 2FA setup:', error);
+        } catch {
+            // console.error('Error fetching 2FA setup:', error);
+            message.error("Failed to load 2FA setup. Please try again.");
         }
     };
 

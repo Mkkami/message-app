@@ -1,6 +1,5 @@
 
 services:
-  # backend
   backend:
     build:
       context: ./backend
@@ -8,14 +7,11 @@ services:
     volumes:
       # mapowanie folderu aby sqlite i załączniki nie zniknęły po restarcie
       - ./backend/data:/app/data
-      - ./backend/uploads:/app/uploads
-    
     env_file:
       - .env
-    
     expose:
       - "8000"
-    restart: always
+
 
   # frontend
   frontend:
@@ -24,9 +20,8 @@ services:
       dockerfile: Dockerfile
     expose:
       - "80"
-    restart: always
 
-  # reverse proxy
+
   proxy:
     image: nginx:stable-alpine
     ports:
@@ -38,4 +33,3 @@ services:
     depends_on:
       - backend
       - frontend
-    restart: always
