@@ -10,13 +10,14 @@ const { Title, Text } = Typography;
 
 function Message() {
     const {id } = useParams();
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
     const { keys, getKeys } = useUser();
     const [messageData, setMessageData] = useState<Message | null>(null);
 
     const fetchMessage = async () => {
         console.log(keys);
         if (!keys) {
+            await getKeys();
             return;
         }
 
@@ -29,7 +30,7 @@ function Message() {
 
             const data = await response.json();
 
-            console.log(data);
+            // console.log(data);
 
             messageService.decryptMessage(
                 data.ciphertext, 
@@ -39,17 +40,17 @@ function Message() {
                 data.signature_pubkey, 
                 keys.encryption.privateKey
             ).then((decrypted) => {
-                console.log(decrypted);
+                // console.log(decrypted);
                 setMessageData(decrypted);
             }).catch((err) => {
-                message.error("Failed to decrypt message");
+                message.error(err.message);
             });
 
 
         } catch {
             message.error("Failed to load message");
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     }
 
@@ -70,31 +71,32 @@ function Message() {
     };
 
     return (
-        <Flex vertical gap="middle">
-            
-            <Button onClick={fetchMessage}>Reload</Button>
-            <Button onClick={getKeys}>Load Keys</Button>
+        <Flex vertical gap="small" align="center" style={{minHeight: "100vh", padding: 20}}>
 
             <Title level={2}>Message</Title>
-            <Divider />
-            <p>
+            <Divider style={{ margin: "0"}} />
+            
+            <Flex vertical gap="middle" style={{maxWidth: 800}} align="center" justify="center">
+
+            <Text >
                 {messageData?.text}
-            </p>
+            </Text>
 
             {messageData?.attachment && (
                 <Card size="small" title="Attachment">
-                    <Flex justify="space-between" align="center">
+                    <Flex justify="space-between" align="center" gap="large">
                         <Text strong>{messageData.attachment.name}</Text>
                         <Button 
                             type="primary"
                             icon={<DownloadOutlined />}
                             onClick={handleDownload}
-                        >
+                            >
                             Download
                         </Button>
                     </Flex>
                 </Card>
             )}
+            </Flex>
             
         </Flex>
     )

@@ -6,12 +6,14 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.services.user_service import UserService
 
+from app.core.limit import limiter
 
 router = APIRouter(
     tags=["auth"]
 )
 
 @router.post("/login")
+@limiter.limit("5/5 minutes")
 def login(
     request: Request,
     username: str = Form(...),
