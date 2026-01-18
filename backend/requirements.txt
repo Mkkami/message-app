@@ -10,3 +10,4 @@ itsdangerous
 alembic
 zxcvbn
 argon2-cffi
+slowapi

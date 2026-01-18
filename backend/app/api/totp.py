@@ -5,6 +5,8 @@ from app.core.session import get_current_user_id
 from app.core.db import get_db
 from sqlalchemy.orm import Session
 
+from app.core.limit import limiter
+
 from app.models.user import User
 from app.core import security_2fa
 from app.schemas.totp import TOTPVerify
@@ -50,6 +52,7 @@ async def setup_2fa(
     }
 
 @router.post("/verify")
+@limiter.limit("5/5 minutes")
 async def verify_2fa(
     data: TOTPVerify,
     request: Request,

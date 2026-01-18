@@ -6,7 +6,8 @@ from app.core.db import get_db
 from app.schemas.user import RegisterSuccess, UserCreate
 from app.services.user_service import UserService
 from app.exceptions.weak_password_exception import WeakPasswordException
-from app.models.user import User, UserKeys
+from app.models.user import User
+from app.core.limit import limiter
 
 router = APIRouter(
     prefix="/users",
@@ -43,6 +44,7 @@ def register(
     } 
 
 @router.get("/check_username")
+@limiter.limit("10/1 minute")
 def check_username(
     username: str,
     db: Session = Depends(get_db)
@@ -91,6 +93,7 @@ def get_my_keys(
     }
 
 @router.get("/search")
+@limiter.limit("20/1 minute")
 def search_users(
     username: str,
     db: Session = Depends(get_db)

@@ -6,7 +6,7 @@ from app.core.db import get_db
 from app.models.message import Message, MessageRecipient
 from app.schemas.message import MessageCreate
 from app.core.session import get_current_user_id
-
+from app.core.limit import limiter
 
 router = APIRouter(
     prefix="/messages",
@@ -15,6 +15,7 @@ router = APIRouter(
 
 
 @router.post("/send")
+@limiter.limit("5/5 minute")
 def send_message(
     message: MessageCreate,
     request: Request,

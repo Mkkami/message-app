@@ -1,8 +1,12 @@
 import fastapi
 from fastapi.security import OAuth2PasswordBearer
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.settings import settings
+from app.core.limit import limiter
 
 from app.api.user import router as user_router
 from app.api.totp import router as totp_router
@@ -25,6 +29,9 @@ app.add_middleware(
     same_site="lax", # csrf
     max_age=3600 # 1 hour
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(user_router)
 app.include_router(totp_router)
