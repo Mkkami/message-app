@@ -44,7 +44,7 @@ def register(
     } 
 
 @router.get("/check_username")
-@limiter.limit("10/1 minute")
+# @limiter.limit("10/minute")
 def check_username(
     username: str,
     db: Session = Depends(get_db)
@@ -93,9 +93,10 @@ def get_my_keys(
     }
 
 @router.get("/search")
-@limiter.limit("20/1 minute")
+@limiter.limit("20/minute")
 def search_users(
     username: str,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     user = db.query(User).filter(User.username == username).first()

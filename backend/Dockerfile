@@ -39,7 +39,7 @@ RUN addgroup --system appuser && adduser --system --group appuser
 RUN mkdir -p /app/uploads && chown appuser:appuser /app/uploads
 
 # kopiowanie plików aplikacji i zmiana właściciela
-# COPY --chown=appuser:appuser . . # uncomment for dev 
+COPY --chown=appuser:appuser . .
 
 USER appuser
 

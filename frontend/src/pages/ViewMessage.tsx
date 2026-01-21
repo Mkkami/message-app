@@ -8,14 +8,14 @@ import type { Message } from "../types/message";
 
 const { Title, Text } = Typography;
 
-function Message() {
+function ViewMessage() {
     const {id } = useParams();
     // const [loading, setLoading] = useState(true);
     const { keys, getKeys } = useUser();
     const [messageData, setMessageData] = useState<Message | null>(null);
 
     const fetchMessage = async () => {
-        console.log(keys);
+        // console.log(keys);
         if (!keys) {
             await getKeys();
             return;
@@ -102,4 +102,4 @@ function Message() {
     )
 
 }
-export default Message;
+export default ViewMessage;
