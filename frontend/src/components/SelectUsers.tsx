@@ -12,7 +12,7 @@ interface SelectUsersProps {
 function SelectUsers(props: SelectUsersProps) {
     const [currentUsername, setCurrentUsername] = useState<string>("");
 
-    const searchUser = async (username:string) => {
+    const searchUser = async (username: string) => {
         if (props.users.some(u => u.username === username)) {
             message.warning("User already added");
             return;
@@ -39,7 +39,9 @@ function SelectUsers(props: SelectUsersProps) {
     }
 
     const validateUsername = (username: string) => {
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+        console.log(username);
+        const usernameRegex = /^[a-zA-Z0-9-_]+$/;
+        console.log(usernameRegex.test(username));
         if (!usernameRegex.test(username)) {
             message.error("Invalid username format");
             return false;
@@ -50,13 +52,13 @@ function SelectUsers(props: SelectUsersProps) {
     return (
         <Flex vertical>
             <Flex>
-                <Input placeholder="Search user..." onChange={(e) => setCurrentUsername(e.target.value)} onPressEnter={() => searchUser(currentUsername)}/>
+                <Input placeholder="Search user..." onChange={(e) => setCurrentUsername(e.target.value)} onPressEnter={() => searchUser(currentUsername)} />
                 <Button type="primary" onClick={() => searchUser(currentUsername)}>Add</Button>
             </Flex>
             <List>
                 {props.users.map((user) => (
                     <List.Item key={user.id}>
-                        <Flex justify="space-between" align="center" style={{width: "100%"}}>
+                        <Flex justify="space-between" align="center" style={{ width: "100%" }}>
                             <span>{user.username}</span>
                             <Button type="link" danger onClick={() => props.onRemoveUser(user.id)}>Remove</Button>
                         </Flex>
