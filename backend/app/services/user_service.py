@@ -4,7 +4,7 @@ from app.models.user import User, UserKeys
 from app.schemas.user import UserCreate
 from zxcvbn import zxcvbn
 
-from app.exceptions.user_errors import UsernameAlreadyExistsError, WeakPasswordError
+from app.exceptions.user_errors import InvalidCredentialsError, UsernameAlreadyExistsError, WeakPasswordError
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
@@ -55,4 +55,14 @@ class UserService:
         if user and pwd_context.verify(password, user.password_hash):
             return user
         return None
+    
+    def authenticate_user(self, username: str, password: str) -> User:
+        user = self.validate_login(username, password)
+        if not user:
+            raise InvalidCredentialsError()
+        
+        if not pwd_context.verify(password, user.password_hash):
+            raise InvalidCredentialsError()
+        
+        return user
     
