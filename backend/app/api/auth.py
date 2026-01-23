@@ -7,6 +7,7 @@ from app.core.db import get_db
 from app.services.user_service import UserService
 
 from app.core.limit import limiter
+from app.exceptions.user_errors import InvalidCredentialsError
 
 router = APIRouter(
     tags=["auth"]
@@ -21,24 +22,25 @@ def login(
     db: Session = Depends(get_db),
 ):
     user_service = UserService(db)
-    user = user_service.validate_login(username, password)
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid username or password"
-        )
-    
-    request.session["user_id"] = user.id
-    request.session["2fa_verified"] = False
 
-    if user.is_2fa_enabled:
-        return {
-            "target": "verify",
-            "message": "Please enter 2FA code"
-        }
-    else: # gdy użytkownik nie dokończył konfiguracji 2FA przy rejestracji
-        return {
-            "target": "setup",
-            "message": "2FA is not set up"
-        }
+    try:
+        user = user_service.authenticate_user(username, password)
 
+
+        request.session.clear()
+        request.session["user_id"] = user.id
+        request.session["2fa_verified"] = False
+
+        if user.is_2fa_enabled:
+            return {"target": "verify", "message": "2FA required"}
+        
+        return {"target": "setup", "message": "2FA setup required"}
+
+    except InvalidCredentialsError:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+
+
+@router.post("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return {"status": "ok"}

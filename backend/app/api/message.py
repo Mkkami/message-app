@@ -1,12 +1,11 @@
-
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.core.db import get_db
-from app.models.message import Message, MessageRecipient
 from app.schemas.message import MessageCreate
-from app.core.session import get_current_user_id
+from app.core.session import get_verified_user
 from app.core.limit import limiter
+from app.models.user import User
+from app.services.message_service import MessageService
 
 router = APIRouter(
     prefix="/messages",
@@ -18,128 +17,63 @@ router = APIRouter(
 @limiter.limit("5/5 minute")
 def send_message(
     message: MessageCreate,
-    request: Request,
-    db: Session = Depends(get_db)
+    request: Request, # do limitera
+    db: Session = Depends(get_db),
+    user: User = Depends(get_verified_user)
 ):
-    # check if auth
-    current_user_id = request.session.get("user_id")
-    if not current_user_id or not request.session.get("2fa_verified"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    # create message
-    new_message = Message(
-        sender_id=current_user_id,
-        ciphertext=message.ciphertext,
-        signature=message.signature,
-        eph_key=message.eph_key
-    )
-    db.add(new_message)
-    db.flush()
+    msg_service = MessageService(db)
+    new_msg_id = msg_service.send_message(user.id, message)
+    return {"status": "sent", "message_id": new_msg_id}
 
-    for rec in message.recipients:
-        new_recipient = MessageRecipient(
-            message_id=new_message.id,
-            recipient_id=rec.recipient_id,
-            enc_aes_key=rec.enc_aes_key
-        )
-        db.add(new_recipient)
-
-    db.commit()
-    return {
-        "status": "sent",
-        "message_id": new_message.id
-    }
 
 @router.get("/inbox")
 def get_inbox(
-    request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_verified_user)
 ):
-    current_user_id = request.session.get("user_id")
-    if not current_user_id or not request.session.get("2fa_verified"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    inbox_entries = (
-        db.query(MessageRecipient)
-        .filter(MessageRecipient.recipient_id == current_user_id)
-        .all()
-    )
-
+    msg_service = MessageService(db)
+    entries = msg_service.get_user_inbox(user.id)
     return [
         {
-            "id": ent.message_id,
-            "sender_username": ent.message.sender.username,
-            "is_read": ent.is_read
+            "id": e.message_id,
+            "sender_username": e.message.sender.username,
+            "is_read": e.is_read
         }
-        for ent in inbox_entries
+        for e in entries
     ]
+
 
 @router.get("/{message_id}")
 def get_message(
     message_id: str,
-    request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_verified_user)
 ):
-    current_user_id = request.session.get("user_id")
-    if not current_user_id or not request.session.get("2fa_verified"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    message_recipient = (
-        db.query(MessageRecipient)
-        .filter(
-            MessageRecipient.message_id == message_id,
-            MessageRecipient.recipient_id == current_user_id
-        )
-        .first()
-    )
+    service = MessageService(db)
+    entry = service.get_message_by_id(message_id, user.id)
 
-    if not message_recipient:
+    if not entry:
         raise HTTPException(status_code=404, detail="Message not found")
-    
-    if message_recipient.is_read == False:
-        message_recipient.is_read = True
-        db.commit()
-    
-    message = message_recipient.message
+
+    msg = entry.message
 
     return {
-        "sender_id": message.sender_id,
-        "ciphertext": message.ciphertext,
-        "signature": message.signature,
-        "eph_key": message.eph_key,
-        "enc_aes_key": message_recipient.enc_aes_key,
-        "signature_pubkey": message.sender.keys.signing_pub_key
+        "sender_id": msg.sender_id,
+        "ciphertext": msg.ciphertext,
+        "signature": msg.signature,
+        "eph_key": msg.eph_key,
+        "enc_aes_key": entry.enc_aes_key,
+        "signature_pubkey": msg.sender.keys.signing_pub_key
     }
 
 @router.delete("/{message_id}")
 def delete_message(
     message_id: str,
-    request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: User = Depends(get_verified_user)
 ):
-    current_user_id = get_current_user_id(request)
-    if not current_user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    if not request.session.get("2fa_verified"):
-        raise HTTPException(status_code=401, detail="2FA not verified")
-    
-    recipient_entry = db.query(MessageRecipient).filter(
-        MessageRecipient.message_id == message_id,
-        MessageRecipient.recipient_id == current_user_id
-    ).first()
+    service = MessageService(db)
 
-    if not recipient_entry:
+    if not service.delete_message(message_id, user.id):
         raise HTTPException(status_code=404, detail="Message not found")
-    
-    db.delete(recipient_entry)
-    db.commit()
-
-    remaining_links = db.query(Message).filter(Message.id == message_id).count()
-
-    if remaining_links == 0:
-        message = db.query(Message).filter(Message.id == message_id).first()
-        db.delete(message)
-        db.commit()
-
     return {"status": "deleted"}

@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.schemas.user import RegisterSuccess, UserCreate
 from app.services.user_service import UserService
-from app.exceptions.weak_password_exception import WeakPasswordException
+from app.exceptions.user_errors import UsernameAlreadyExistsError, WeakPasswordError
 from app.models.user import User
 from app.core.limit import limiter
+from app.core.session import get_verified_user
 
 router = APIRouter(
     prefix="/users",
@@ -19,69 +20,22 @@ def register(
     user: UserCreate,
     request: Request,
     db: Session = Depends(get_db)
-        ):
+):
     user_service = UserService(db)
-
     try:
         new_user = user_service.create_user(user)
-    except ValueError as ve:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(ve)
-        )
-    except WeakPasswordException as wpe:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=wpe.message
-        )
+        request.session["user_id"] = new_user.id
+        request.session["2fa_verified"] = False
+        return { "message": "User registered", "redirect": "/setup-2fa"} 
+    except WeakPasswordError as e:
+        raise HTTPException(status_code=400, detail=e.message)
+    except UsernameAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=e.message)
     
-    request.session["user_id"] = new_user.id
-    request.session["2fa_verified"] = False
-
-    return { 
-        "message": "User registered successfully",
-        "redirect": "/setup-2fa"
-    } 
-
-@router.get("/check_username")
-# @limiter.limit("10/minute")
-def check_username(
-    username: str,
-    db: Session = Depends(get_db)
-        ):
-    user_service = UserService(db)
-
-    if user_service.get_user_by_username(username):
-        return {"exists": True}
-    return {"exists": False}
-
 @router.get("/me/keys")
 def get_my_keys(
-    request: Request,
-    db: Session = Depends(get_db)
+    user: User = Depends(get_verified_user)
 ):
-    user_id = request.session.get("user_id")
-
-    if not request.session.get("2fa_verified") and request.session.get("user_id"):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="2FA verification required"
-        )
-    
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    
     return {
         "keys": {
             "signing_pub_key": user.keys.signing_pub_key,
@@ -96,19 +50,29 @@ def get_my_keys(
 @limiter.limit("20/minute")
 def search_users(
     username: str,
-    request: Request,
-    db: Session = Depends(get_db)
+    request: Request, # musi być aby limit działał
+    db: Session = Depends(get_db),
+    _ = Depends(get_verified_user) # tylko 2fa verified
 ):
-    user = db.query(User).filter(User.username == username).first()
+    user_service = UserService(db)
+    user = user_service.get_user_by_username(username)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
+        raise HTTPException(status_code=404,detail="User not found")
     return {
         "id": user.id,
         "username": user.username,
         "publicKey": user.keys.encryption_pub_key
     }
+
+@router.get("/check_username")
+def check_username(
+    username: str,
+    db: Session = Depends(get_db)
+):
+    user_service = UserService(db)
+
+    if user_service.get_user_by_username(username):
+        return {"exists": True}
+    return {"exists": False}
+
