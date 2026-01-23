@@ -11,6 +11,10 @@ RUN npm i
 # później zmień i -> ci
 
 # kopia kodu
+
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY . .
 
 # budowa apk
