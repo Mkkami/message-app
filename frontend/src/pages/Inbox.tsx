@@ -21,7 +21,6 @@ function Inbox() {
                 return;
             }
             const data = await response.json();
-            // console.log(data);
             setMessages(data)
 
         } catch {

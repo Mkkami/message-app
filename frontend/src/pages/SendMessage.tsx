@@ -35,7 +35,6 @@ function SendMessage() {
     }
 
     const handleSend = async () => {
-        // console.log(recipients, text, file, keys);
 
         if (recipients.length === 0 || recipients === null) {
             message.error("Please add at least one recipient or type a message.");
@@ -86,7 +85,6 @@ function SendMessage() {
         } finally {
             setIsSending(false);
         }
-        // console.log(recipients);
     }
 
 

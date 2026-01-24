@@ -63,7 +63,6 @@ function Register() {
                     key_salt: saltHex,
                 }
             }
-            // console.log("Payload: ", payload);
 
             // send request
             const request = await fetch(`${API_CONFIG.BASE_URL}/users/register`, {

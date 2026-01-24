@@ -39,9 +39,7 @@ function SelectUsers(props: SelectUsersProps) {
     }
 
     const validateUsername = (username: string) => {
-        console.log(username);
         const usernameRegex = /^[a-zA-Z0-9-_]+$/;
-        console.log(usernameRegex.test(username));
         if (!usernameRegex.test(username)) {
             message.error("Invalid username format");
             return false;
