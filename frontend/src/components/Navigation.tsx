@@ -1,11 +1,9 @@
 import { InboxOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SendOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Divider, Menu, Typography } from "antd";
+import { Divider, Menu } from "antd";
 import { Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
 import { useNavigate } from "react-router";
 import { useUser } from "../context/UserContext";
-
-const {Text} = Typography
 
 export const AppNavigation = () => {
     const navigate = useNavigate();
