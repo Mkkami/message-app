@@ -15,7 +15,7 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<number>(0);
     const [passwordResult, setPasswordResult] = useState<ZxcvbnResult>(zxcvbn(""));
-    const { setTempPassword } = useUser();
+    const { setTempPassword, setUsername } = useUser();
     const navigate = useNavigate();
 
     const onFinish = async (values: any) => {
@@ -88,6 +88,7 @@ function Register() {
             }
 
             // save passwd to decrypt keys after successful 2fa setup
+            setUsername(values.username);
             setTempPassword(values.password);
 
             navigate('/2fa/setup');

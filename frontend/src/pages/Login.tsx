@@ -9,7 +9,7 @@ const { Title } = Typography;
 function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { setTempPassword } = useUser();
+    const { setTempPassword, setUsername } = useUser();
 
     const onFinish = async (values: {username: string, password: string}) => {
         setLoading(true);
@@ -32,6 +32,7 @@ function Login() {
             } 
             const data = await response.json();
 
+            setUsername(values.username);
             setTempPassword(values.password);
 
             navigate(`/2fa/${data.target}`)
