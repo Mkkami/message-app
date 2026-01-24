@@ -5,7 +5,7 @@ import { useUser } from "../context/UserContext";
 
 function TwoFAInput() {
     const navigate = useNavigate();
-    const { getKeys } = useUser();
+    const { getKeys, setIsLoggedIn } = useUser();
     
     const verifyCode = async (values: {token: string}) => {
         try {
@@ -30,6 +30,7 @@ function TwoFAInput() {
 
                 // pobieranie kluczy po 2fa
                 await getKeys();
+                setIsLoggedIn(true);
 
                 navigate('/');
 

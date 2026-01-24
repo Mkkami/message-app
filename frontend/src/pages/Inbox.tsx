@@ -65,7 +65,16 @@ function Inbox() {
                 renderItem={(item: any) => (
                     <List.Item
                         key={item.id}
-                        style={{cursor: "pointer", background: item.is_read ? "white" : "#e6f7ff"}}
+                        style={{
+                            margin: "8px 0",
+                            padding: "12px",
+                            cursor: "pointer",
+                            border: item.is_read ? "1px solid #f0f0f0" : "1px solid #1890ff",
+                            borderRadius: "8px",
+                            background: item.is_read ? "#fafafa" : "#ffffff",
+                            transition: "all 0.3s",
+                            boxShadow: item.is_read ? "none" : "0 2px 8px rgba(24, 144, 255, 0.15)"
+                        }}
                         onClick={() => navigate(`/message/${item.id}`)}
                         actions={[
                         <div onClick={(e) => e.stopPropagation()}>
@@ -85,14 +94,24 @@ function Inbox() {
                         </div>
                         ]}
                         >
-                        <List.Item.Meta
-                            title={`From: ${item.sender_username}`}
-                            description={item.is_read ? "Read" : "Unread"}
+                        <List.Item.Meta 
+                            title={
+                                <span style={{ fontWeight: item.is_read ? 'normal' : 'bold' }}>
+                                    {item.sender_username}
+                                </span>
+                            }
+                            description={
+                                <span style={{ 
+                                    color: item.is_read ? '#8c8c8c' : '#1890ff', 
+                                    fontWeight: item.is_read ? 'normal' : '600' 
+                                }}>
+                                    {item.is_read ? "Read" : "New Message"}
+                                </span>
+                            }
                         />
                     </List.Item>
                 )}
-                >
-            </List>
+            />
         </Flex>
     )
 }

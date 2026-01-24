@@ -1,16 +1,11 @@
-import { Button, Flex } from "antd";
-import { Link } from "react-router";
+import { MailOutlined } from "@ant-design/icons";
+import { Flex, Spin } from "antd";
 
 function App() {
 
   return (
     <Flex style={{height: "100vh"}} justify="center" align="center">
-      <Flex vertical gap="large" justify="center" align="center">
-        <Button type="default"><Link to="/login">Login</Link></Button>
-        <Button type="default"><Link to="/register">Register</Link></Button>
-        <Button type="default"><Link to="/send">Send message</Link></Button>
-        <Button type="default"><Link to="/inbox">Inbox</Link></Button>
-      </Flex>
+      <Spin indicator={<MailOutlined spin style={{fontSize: "5rem"}} />} />
     </Flex>
   )
 }

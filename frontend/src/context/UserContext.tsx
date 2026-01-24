@@ -1,14 +1,23 @@
+import message from "antd/es/message";
 import { createContext, useContext, useState } from "react";
+import { API_CONFIG } from "../config/api";
 import { keyService } from "../service/keyService";
 import { mapApiKeysToUserKeys, type UserKeyBundle } from "../types/keys";
 
 interface UserContextType {
+    username: string | null;
+
+    isLoggedIn: boolean;
+    
     tempPassword: string | null;
 
     keys: UserKeyBundle | null;
 
-    setKeys: (keys: UserKeyBundle | null) => void;
+
+    setUsername: (username: string | null) => void;
     setTempPassword: (password: string | null) => void;
+    setIsLoggedIn: (loggedIn: boolean) => void;
+    setKeys: (keys: UserKeyBundle | null) => void;
     logout: () => void;
     getKeys: () => Promise<void>;
 }
@@ -16,21 +25,35 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({children}: {children: React.ReactNode}) => {
+    const [username, setUsername] = useState<string | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [keys, setKeys] = useState<UserKeyBundle | null>(null);
     const [tempPassword, setTempPassword] = useState<string | null>(null);
     // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    const logout = () => {
+    const logout = async () => {
         // setUsername(null);
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error("Logout failed");
+            }
+            message.success("Logged out successfully");
+        } catch {
+            message.error("Error during logout");
+        }
         setKeys(null);
         setTempPassword(null);
-        // api do wyrzucenia sesji
+        setUsername(null);
+        setIsLoggedIn(false);
     }
 
     const getKeys = async () => {
         if (!tempPassword) {
             window.location.href = '/login';
-            // setIsModalOpen(true);
             return;
         }
 
@@ -67,45 +90,18 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
         }
     }
 
-    // const handlePasswordSubmit = (values: {password: string}) => {
-
-    //     setTempPassword(values.password);
-    //     setIsModalOpen(false);
-    // }
-
     return (
         <UserContext.Provider value={{
-            keys, tempPassword,
-            setKeys, setTempPassword, logout, getKeys
+            username, keys, tempPassword, isLoggedIn,
+            setUsername, setTempPassword, setKeys, setIsLoggedIn, logout, getKeys
         }}>
             {children}
-            {/* <Modal
-                title="Input password"
-                open={isModalOpen}
-                footer={null}
-                closable={false}
-                maskClosable={false}
-            >
-                <Form
-                    onFinish={handlePasswordSubmit}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        label="Password"
-                        name="password"
-                        rules={[{ required: true }]}
-                    >
-                        <Input.Password autoFocus/>
-                    </Form.Item>
-                    <Button type="primary" htmlType="submit">Unlock</Button>
-                </Form>
-            </Modal> */}
         </UserContext.Provider>
     )
 }
 
 export const useUser = () => {
     const context = useContext(UserContext);
-    if (!context) throw new Error("useUser muse be used within UserProvider");
+    if (!context) throw new Error("useUser must be used within UserProvider");
     return context;
 }
