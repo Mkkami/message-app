@@ -27,7 +27,8 @@ app.add_middleware(
     secret_key=settings.SESSION_SECRET_KEY,
     session_cookie="session",
     same_site="lax", # csrf
-    max_age=3600 # 1 hour
+    max_age=3600, # 1 hour
+    https_only=True,
 )
 
 app.state.limiter = limiter
