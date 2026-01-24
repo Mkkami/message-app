@@ -1,4 +1,6 @@
+import message from "antd/es/message";
 import { createContext, useContext, useState } from "react";
+import { API_CONFIG } from "../config/api";
 import { keyService } from "../service/keyService";
 import { mapApiKeysToUserKeys, type UserKeyBundle } from "../types/keys";
 
@@ -20,8 +22,20 @@ export const UserProvider = ({children}: {children: React.ReactNode}) => {
     const [tempPassword, setTempPassword] = useState<string | null>(null);
     // const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-    const logout = () => {
+    const logout = async () => {
         // setUsername(null);
+        try {
+            const response = await fetch(`${API_CONFIG.BASE_URL}/logout`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error("Logout failed");
+            }
+            message.success("Logged out successfully");
+        } catch {
+            message.error("Error during logout");
+        }
         setKeys(null);
         setTempPassword(null);
         // api do wyrzucenia sesji

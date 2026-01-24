@@ -1,32 +1,27 @@
 import { InboxOutlined, LoginOutlined, MenuOutlined, SendOutlined, UserAddOutlined } from "@ant-design/icons";
-import { Button, Dropdown, type MenuProps } from "antd";
-import { useLocation, useNavigate } from "react-router";
+import { Menu } from "antd";
+import Sider from "antd/es/layout/Sider";
+import { useNavigate } from "react-router";
+import { useUser } from "../context/UserContext";
 
 export const AppNavigation = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const items: MenuProps["items"] = [
-        { key: '/', label: 'Home', icon: <MenuOutlined />},
-        { key: '/login', label: 'Login' , icon: <LoginOutlined />},
-        { key: '/register', label: 'Register' , icon: <UserAddOutlined />},
-        { key: '/send', label: 'Send Message'  , icon: <SendOutlined />},
-        { key: '/inbox', label: 'Inbox'  , icon: <InboxOutlined />},
-    ];
-
-    const handleMenuClick: MenuProps['onClick'] = (e) => {
-        navigate(e.key);
-    }
-
-    if (location.pathname === '/') {
-        return null;
-    }
+    const logout = useUser().logout;
 
     return (
-        <div style={{position: 'fixed', top: 20, left: 20, zIndex: 1000}}>
-            <Dropdown menu={{ items, onClick: handleMenuClick }} trigger={['click']} >
-                <Button size="large" icon={<MenuOutlined />} shape="default" />
-            </ Dropdown>
-        </div>
+        <Sider collapsible breakpoint="md" collapsedWidth="50">
+            <Menu>
+                <Menu.Item key="/" icon={<MenuOutlined />} onClick={() => navigate('/')}>Home</Menu.Item>
+                <Menu.Item key="/login" icon={<LoginOutlined />} onClick={() => navigate('/login')}>Login</Menu.Item>
+                <Menu.Item key="/register" icon={<UserAddOutlined />} onClick={() => navigate('/register')}>Register</Menu.Item>
+                <Menu.Item key="/send" icon={<SendOutlined />} onClick={() => navigate('/send')}>Send Message</Menu.Item>
+                <Menu.Item key="/inbox" icon={<InboxOutlined />} onClick={() => navigate('/inbox')}>Inbox</Menu.Item>
+                <Menu.Item key="/logout" icon={<LoginOutlined />} onClick={() => {
+                    logout();
+                    navigate('/');
+
+                } }>Logout</Menu.Item>
+            </Menu>
+        </Sider>
     )
 }
