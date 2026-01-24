@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.post("/send")
-@limiter.limit("5/5 minute")
+@limiter.limit("5/minute")
 def send_message(
     message: MessageCreate,
     request: Request, # do limitera

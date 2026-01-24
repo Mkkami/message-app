@@ -16,6 +16,7 @@ router = APIRouter(
 )
 
 @router.post("/register", response_model=RegisterSuccess)
+@limiter.limit("5/minute")
 def register(
     user: UserCreate,
     request: Request,
@@ -66,6 +67,7 @@ def search_users(
     }
 
 @router.get("/check_username")
+@limiter.limit("5/minute")
 def check_username(
     username: str,
     db: Session = Depends(get_db)
