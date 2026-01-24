@@ -13,7 +13,6 @@ function Login() {
 
     const onFinish = async (values: {username: string, password: string}) => {
         setLoading(true);
-        // console.log(values);
         try {
             const params = new URLSearchParams();
             params.append('username', values.username);

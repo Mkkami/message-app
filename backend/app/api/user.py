@@ -70,6 +70,7 @@ def search_users(
 @limiter.limit("5/minute")
 def check_username(
     username: str,
+    request: Request, # limiter
     db: Session = Depends(get_db)
 ):
     user_service = UserService(db)
