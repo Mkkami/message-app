@@ -1,21 +1,22 @@
-import { DownloadOutlined } from "@ant-design/icons";
-import { Button, Card, Divider, Flex, message, Typography } from "antd";
+import { ArrowLeftOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Button, Card, Flex, message, Spin, Typography } from "antd";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useUser } from "../context/UserContext";
 import { messageService } from "../service/messageService";
 import type { Message } from "../types/message";
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 function ViewMessage() {
     const {id } = useParams();
-    // const [loading, setLoading] = useState(true);
     const { keys, getKeys } = useUser();
     const [messageData, setMessageData] = useState<Message | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const navigate = useNavigate();
 
     const fetchMessage = async () => {
-        // console.log(keys);
+        setLoading(true);
         if (!keys) {
             await getKeys();
             return;
@@ -30,8 +31,6 @@ function ViewMessage() {
 
             const data = await response.json();
 
-            // console.log(data);
-
             messageService.decryptMessage(
                 data.ciphertext, 
                 data.signature, 
@@ -40,7 +39,6 @@ function ViewMessage() {
                 data.signature_pubkey, 
                 keys.encryption.privateKey
             ).then((decrypted) => {
-                // console.log(decrypted);
                 setMessageData(decrypted);
             }).catch((err) => {
                 message.error(err.message);
@@ -50,7 +48,7 @@ function ViewMessage() {
         } catch {
             message.error("Failed to load message");
         } finally {
-            // setLoading(false);
+            setLoading(false);
         }
     }
 
@@ -72,34 +70,46 @@ function ViewMessage() {
 
     return (
         <Flex vertical gap="small" align="center" style={{minHeight: "100vh", padding: 20}}>
-
-            <Title level={2}>Message</Title>
-            <Divider style={{ margin: "0"}} />
-            
-            <Flex vertical gap="middle" style={{maxWidth: 800}} align="center" justify="center">
-
-            <Text >
-                {messageData?.text}
-            </Text>
-
-            {messageData?.attachment && (
-                <Card size="small" title="Attachment">
-                    <Flex justify="space-between" align="center" gap="large">
-                        <Text strong>{messageData.attachment.name}</Text>
-                        <Button 
-                            type="primary"
-                            icon={<DownloadOutlined />}
-                            onClick={handleDownload}
-                            >
-                            Download
-                        </Button>
+            <Card
+                style={{ width: '100%', maxWidth: 800 }}
+                title={
+                    <Flex align="center" gap="middle">
+                        <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/inbox')} />
+                        <Title level={4} style={{margin: 0}}>Message Details</Title>
                     </Flex>
-                </Card>
-            )}
-            </Flex>
-            
+                }
+            >
+                {loading ? (
+                    <Spin indicator={<LoadingOutlined />} />
+                ) : messageData && (
+                    <Flex vertical gap="large">
+                        <div style={{
+                            background: '#f8f9fa',
+                            padding: '20px',
+                            borderRadius: '8px',
+                            border: '1px solid #f0f0f0',
+                        }}>
+                            <Paragraph style={{
+                                whiteSpace: 'pre-wrap',
+                                fontSize: '16px',
+                                margin: 0,
+                                color: '#262626'
+                            }}>
+                                {messageData.text}
+                            </Paragraph>
+                        </div>
+                        {messageData.attachment && (
+                            <Card size="small" type="inner" title="Attachment">
+                                <Flex justify="space-between" align="center">
+                                    <Text style={{fontWeight: 'bold'}}>{messageData.attachment.name}</Text>
+                                    <Button type="primary" onClick={handleDownload}>Download</Button>
+                                </Flex>
+                            </Card>
+                        )}
+                    </Flex>
+                )}  
+            </Card>
         </Flex>
     )
-
 }
 export default ViewMessage;
