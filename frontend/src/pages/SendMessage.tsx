@@ -127,9 +127,9 @@ function SendMessage() {
                                 <Flex justify="space-between" align="center">
                                     <Upload
                                         beforeUpload={(file) => {
-                                            const isLt2M = file.size / 1024 / 1024 < 2;
-                                            if (!isLt2M) {
-                                                message.error("File must be smaller than 2MB!")
+                                            const isLt5M = file.size / 1024 / 1024 < 5;
+                                            if (!isLt5M) {
+                                                message.error("File must be smaller than 5MB!")
                                                 return Upload.LIST_IGNORE;
                                             }
                                             setFile(file);
@@ -137,7 +137,7 @@ function SendMessage() {
                                         }}
                                         showUploadList={false}
                                     >
-                                        <Button disabled={!!file} icon={<PaperClipOutlined />}>Attach file (max 2MB)</Button>
+                                        <Button disabled={!!file} icon={<PaperClipOutlined />}>Attach file (max 5MB)</Button>
                                     </Upload>
                                     <Button type="primary"
                                         icon={<SendOutlined />}
