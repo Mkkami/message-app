@@ -31,7 +31,7 @@ function SendMessage() {
     }
 
     const addRecipient = (user: UserRecipient) => {
-        setRecipients([...recipients, user]);
+        setRecipients(prev => [...prev, user]);
     }
 
     const handleSend = async () => {

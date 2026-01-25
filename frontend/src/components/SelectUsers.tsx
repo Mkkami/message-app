@@ -13,25 +13,31 @@ function SelectUsers(props: SelectUsersProps) {
     const [currentUsername, setCurrentUsername] = useState<string>("");
 
     const searchUser = async (username: string) => {
-        if (props.users.some(u => u.username === username)) {
+        const cleanUsername = username.trim();
+        
+        if(!cleanUsername) {
+            return;
+        }
+        
+        if (props.users.some(u => u.username === cleanUsername)) {
             message.warning("User already added");
             return;
         }
-
-        if (!validateUsername(username)) {
+        
+        if (!validateUsername(cleanUsername)) {
             return;
         }
         try {
-            const response = await fetch(`/api/users/search?username=${encodeURIComponent(username)}`);
-
+            const response = await fetch(`/api/users/search?username=${encodeURIComponent(cleanUsername)}`);
+            
             if (!response.ok) {
                 message.error("User not found");
                 return;
             }
-
+            
             const user: UserRecipient = await response.json();
-            props.onAddUser(user);
             setCurrentUsername("");
+            props.onAddUser(user);
 
         } catch {
             message.error("Error searching for user");
@@ -50,8 +56,8 @@ function SelectUsers(props: SelectUsersProps) {
     return (
         <Flex vertical>
             <Flex>
-                <Input placeholder="Search user..." onChange={(e) => setCurrentUsername(e.target.value)} onPressEnter={() => searchUser(currentUsername)} />
-                <Button type="primary" onClick={() => searchUser(currentUsername)}>Add</Button>
+                <Input placeholder="Search user..." value={currentUsername} onChange={(e) => setCurrentUsername(e.target.value)} onPressEnter={() => searchUser(currentUsername)} />
+                <Button type="primary" htmlType="button" onClick={() => searchUser(currentUsername)}>Add</Button>
             </Flex>
             <List>
                 {props.users.map((user) => (
