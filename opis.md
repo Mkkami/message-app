@@ -18,8 +18,7 @@ Aplikacja składa się z trzech głównych kontenerów:
     *   **Rola**: REST API, zarządzanie użytkownikami, przechowywanie zaszyfrowanych kluczy i wiadomości, obsługa 2FA, walidacja danych (Pydantic).
 
 3.  **Proxy (`/nginx`)**:
-    *   **Serwer**: NGINX.
-    *   **Rola**: Reverse Proxy, terminacja SSL/TLS, serwowanie plików statycznych frontendu, przekierowywanie zapytań API do backendu, implementacja nagłówków bezpieczeństwa, rate limiting.
+    *   Reverse Proxy, SSL/TLS, serwowanie plików statycznych frontendu, przekierowywanie zapytań API do backendu, implementacja nagłówków bezpieczeństwa, rate limiting.
 
 **Komunikacja:**
 Użytkownik łączy się z NGINX (przez HTTPS). NGINX serwuje aplikację React (dla ścieżek `/`) lub przekazuje zapytania do kontenera Backend (dla ścieżek `/api/`). Backend i Frontend nie są wystawione bezpośrednio na świat.
@@ -29,7 +28,6 @@ Użytkownik łączy się z NGINX (przez HTTPS). NGINX serwuje aplikację React (
 ## 2. Opis Funkcjonalności
 
 ### 2.1. Rejestracja Użytkownika
-Celem jest utworzenie konta oraz bezpieczne wygenerowanie i zapisanie kluczy kryptograficznych.
 
 1.  **Generowanie Kluczy (Frontend)**:
     *   Aplikacja generuje parę kluczy do podpisu (Ed25519) oraz parę kluczy do szyfrowania (X25519).
@@ -38,14 +36,13 @@ Celem jest utworzenie konta oraz bezpieczne wygenerowanie i zapisanie kluczy kry
     *   Klucze prywatne są szyfrowane algorytmem AES-GCM (256-bit).
     *   Klucz szyfrujący do AES jest wyprowadzany z hasła użytkownika i soli przy użyciu algorytmu PBKDF2 (SHA-256, 600,000 iteracji).
 3.  **Wysyłka (API)**:
-    *   Frontend wysyła do API: `username`, hasło (do uwierzytelniania), klucze publiczne (jawne), klucze prywatne (zaszyfrowane AESem) oraz sól.
+    *   Frontend wysyła do API: `username`, hasło (do uwierzytelniania), klucze publiczne (jawne), klucze prywatne (zaszyfrowane AES) oraz sól.
 4.  **Zapis (Backend)**:
     *   Backend sprawdza siłę hasła (`zxcvbn`) i unikalność loginu.
     *   Hasło do logowania jest hashowane algorytmem Argon2id i zapisywane w bazie.
     *   Klucze są zapisywane w tabeli `user_keys`.
 
 ### 2.2. Logowanie i 2FA
-Proces wieloetapowy zapewniający bezpieczeństwo dostępu.
 
 1.  **Uwierzytelnienie (Etap 1)**: Użytkownik podaje login i hasło. Backend weryfikuje hash Argon2.
 2.  **Konfiguracja 2FA (jeśli brak)**: Jeśli użytkownik nie ma 2FA, backend wymusza setup. Generowany jest sekret TOTP, zapisywany w bazie (szyfrowany kluczem aplikacji AES-GCM). Użytkownik skanuje kod QR.
@@ -54,7 +51,6 @@ Proces wieloetapowy zapewniający bezpieczeństwo dostępu.
 5.  **Pobranie Kluczy**: Frontend pobiera zaszyfrowane klucze prywatne z API i używa hasła z logowania, aby je odszyfrować lokalnie (przechowywane jest w pamięci, więc po przeładowaniu strony trzeba się zalogować ponownie).
 
 ### 2.3. Wysłanie Zaszyfrowanej Wiadomości
-Zastosowano model szyfrowania hybrydowego z podpisem cyfrowym.
 
 1.  **Payload**: Frontend przygotowuje JSON zawierający treść wiadomości i dane załącznika (Base64).
 2.  **Szyfrowanie Symetryczne (Treść)**:
@@ -63,7 +59,7 @@ Zastosowano model szyfrowania hybrydowego z podpisem cyfrowym.
 3.  **Szyfrowanie Klucza (Dla Odbiorców)**:
     *   Dla każdego odbiorcy generowany jest tymczasowy klucz pary X25519 (efemeryczny).
     *   Frontend wykonuje operację ECDH (klucz efemeryczny prywatny + klucz publiczny odbiorcy) aby uzyskać wspólny sekret.
-    *   Wspólny sekret jest przepuszczany przez funkcję HKDF (SHA-256) aby uzyskać klucz do szyfrowania klucza sesyjnego (Key Wrapping).
+    *   Wspólny sekret jest przepuszczany przez funkcję HKDF (SHA-256).
     *   Klucz sesyjny AES (z pkt 2) jest szyfrowany tym wyliczonym kluczem.
 4.  **Podpis Cyfrowy**:
     *   Zaszyfrowana treść (ciphertext + IV) oraz klucz publiczny efemeryczny są podpisywane kluczem prywatnym Ed25519 nadawcy.
@@ -124,8 +120,7 @@ Table message_recipients {
 1.  **SSL/TLS**:
     *   Serwer nasłuchuje na porcie 443 (HTTPS).
     *   Wymusza protokoły TLSv1.2 i TLSv1.3.
-    *   Wyłącza słabe szyfry (`ssl_prefer_server_ciphers off`).
-    *   Wykorzystuje certyfikaty self-signed (dla celów deweloperskich/projektowych) zmapowane z wolumenu `./nginx/certs`.
+    *   Wykorzystuje certyfikaty self-signed zmapowane z wolumenu `./nginx/certs`.
 2.  **Przekierowanie HTTP->HTTPS**: Ruch na porcie 80 jest automatycznie przekierowywany na 443 (Code 301).
 3.  **Nagłówki Bezpieczeństwa (Security Headers)**:
     *   `Strict-Transport-Security`: Wymusza łączenie przez HTTPS (HSTS).
@@ -135,4 +130,4 @@ Table message_recipients {
     *   `/api/`: Przekazuje zapytania do kontenera `backend` na port 8000. Ustawia nagłówki `X-Real-IP` i `X-Forwarded-For` dla rate limitigu.
     *   `/`: Kieruje ruch do kontenera `frontend` na port 80.
 5.  **Limity**:
-    *   `client_max_body_size 20M`: Ogranicza wielkość żądania (zapobiega DoS przez wysyłanie gigantycznych plików), co odpowiada limitom aplikacji (wiadomość + załącznik).
+    *   `client_max_body_size 20M`: Ogranicza wielkość żądania (wiadomość + załącznik).

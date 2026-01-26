@@ -5,18 +5,7 @@ import type { UserRecipient } from "../types/user";
 import { keyService } from "./keyService";
 
 export const messageService = {
-    /*
-    1. Przygotowanie payloadu (tekst + załącznik)
-    2. Utworzenie losowego klucza AES i IV
-    3. Zaszyfrowanie payloadu kluczem AES
-    4. Podpisanie zaszyfrowanej wiadomości kluczem prywatnym ed25519
-    5. Przygotowanie kluczy dla odbiorców:
-        a. Wykonanie ECDH przy użycia klucza prywatnego x25519 i klucza pub odbiorcy
-        b. Wyprowadzenie klucza wspólnego przez hkdf
-        c. Zaszyfrowanie klucza AES tym kluczem
-    6. Wysłanie do serwera: ciphertext i signature oraz listy zaszyfrowanych kluczy AES dla odbiorców
-    */
-
+    
     async encryptMessage(
         text: string,
         file: File | null,
@@ -90,15 +79,6 @@ export const messageService = {
         }
 
     },
-
-    /* 
-    1. Weryfikacja podpisu kluczem publicznym nadawcy
-    2. Odzyskanie shared key przez ECDH + HKDF
-    3. Odszyfrowanie klucza AES
-    4. Odszyfrowanie wiadomości kluczem AES, sprawdzenie tagu (GCM)
-    5. Konwersja z JSON do obiektu
-    6. Odtworzenie pliku z base64
-    */
 
     // Decryption
 
